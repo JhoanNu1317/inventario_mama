@@ -1,0 +1,8 @@
+# NotoSans-Regular.ttf
+# Fuente recomendada para soporte Unicode y símbolo ₡.
+# Descárgala desde:
+# https://github.com/googlefonts/noto-fonts/blob/main/hinted/ttf/NotoSans/NotoSans-Regular.ttf
+#
+# O desde Google Fonts: https://fonts.google.com/specimen/Noto+Sans
+#
+# Coloca aquí el archivo descargado.

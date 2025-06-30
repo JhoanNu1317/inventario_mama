@@ -3,6 +3,8 @@ import 'package:audioplayers/audioplayers.dart';
 import './inventario_screen.dart';
 import './info_producto_screen.dart'; //  <-- 1. IMPORTA TU NUEVA PANTALLA AQUÍ
 import './buscar_producto_screen.dart';
+import './agregar_producto_screen.dart';
+import './proforma_screen.dart'; // <-- IMPORTA LA NUEVA PANTALLA AQUÍ
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart'; // <-- Asegúrate de tener esto
@@ -158,8 +160,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 MaterialPageRoute(builder: (context) => InventarioScreen()),
               );
             }),
-            buildButton(Icons.warning_amber_rounded, 'Alertas de Stock Bajo', () {}),
-            buildButton(Icons.add_circle_outline, 'Agregar Producto', () {}),
+            buildButton(Icons.description_outlined, 'Proformas', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProformaScreen()),
+              );
+            }),
+            buildButton(Icons.add_circle_outline, 'Agregar Producto', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AgregarProductoScreen()),
+              );
+            }),
             buildButton(Icons.search, 'Buscar Producto', () {
               Navigator.push(
                 context,

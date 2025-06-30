@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'data/overhall.dart';
 import 'data/discos_de_friccion.dart';
 import 'data/bandas.dart';
@@ -50,26 +51,49 @@ class _BuscarProductoScreenState extends State<BuscarProductoScreen> {
     'Varios': productosVarios,
   };
 
-  void _buscar() {
+  Stream<List<Map<String, dynamic>>> _streamTodosProductos() async* {
+    final apartadosFirestore = [
+      'overhall', 'discos_friccion', 'bandas', 'filtros', 'pistones', 'retenedores', 'bushing', 'empaques', 'discos_sueltos', 'metales', 'varios',
+    ];
+    while (true) {
+      List<Map<String, dynamic>> productos = [];
+      for (final col in apartadosFirestore) {
+        final snap = await FirebaseFirestore.instance.collection(col).get();
+        for (final doc in snap.docs) {
+          final data = doc.data();
+          data['apartado'] = col;
+          productos.add(data);
+        }
+      }
+      yield productos;
+      await Future.delayed(const Duration(seconds: 2)); // refresco cada 2s
+    }
+  }
+
+  void _buscarFirestore() async {
     final nombre = _nombreController.text.trim().toLowerCase();
     final categoria = _categoriaSeleccionada?.trim().toLowerCase();
     final apartado = _apartadoSeleccionado;
+    final apartadosFirestore = [
+      'overhall', 'discos_friccion', 'bandas', 'filtros', 'pistones', 'retenedores', 'bushing', 'empaques', 'discos_sueltos', 'metales', 'varios',
+    ];
     List<ProductoInventario> resultados = [];
-
-    if (apartado != null) {
-      // Buscar solo en el apartado seleccionado
-      resultados = _inventarios[apartado]!
-        .where((p) =>
-          (nombre.isEmpty || p.nombre.toLowerCase().contains(nombre)) &&
-          (categoria == null || categoria.isEmpty || p.categoria.toLowerCase().contains(categoria))
-        ).toList();
-    } else {
-      // Buscar en todos los apartados
-      for (var lista in _inventarios.values) {
-        resultados.addAll(lista.where((p) =>
-          (nombre.isEmpty || p.nombre.toLowerCase().contains(nombre)) &&
-          (categoria == null || categoria.isEmpty || p.categoria.toLowerCase().contains(categoria))
-        ));
+    for (final col in apartadosFirestore) {
+      if (apartado != null && col != apartado.toLowerCase().replaceAll(' ', '_')) continue;
+      final snap = await FirebaseFirestore.instance.collection(col).get();
+      for (final doc in snap.docs) {
+        final data = doc.data();
+        final p = ProductoInventario(
+          nombre: data['nombre'] ?? '',
+          categoria: data['categoria'] ?? '',
+          stock: data['stock'] ?? 0,
+          precio: data['precio'] ?? '',
+          infoRelevante: data['infoRelevante'] ?? '',
+        );
+        if ((nombre.isEmpty || p.nombre.toLowerCase().contains(nombre)) &&
+            (categoria == null || categoria.isEmpty || p.categoria.toLowerCase().contains(categoria))) {
+          resultados.add(p);
+        }
       }
     }
     setState(() {
@@ -166,7 +190,7 @@ class _BuscarProductoScreenState extends State<BuscarProductoScreen> {
                 setState(() {
                   _categoriaSeleccionada = _categoriaController.text;
                 });
-                _buscar();
+                _buscarFirestore();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepPurple,
@@ -187,11 +211,34 @@ class _BuscarProductoScreenState extends State<BuscarProductoScreen> {
                           itemCount: _resultados.length,
                           itemBuilder: (context, i) {
                             final p = _resultados[i];
-                            final apartado = mapApartado[p] ?? '';
+                            // Buscar el apartado por coincidencia de nombre y categoría si no está en el map
+                            String apartado = mapApartado[p] ?? '';
+                            if (apartado.isEmpty) {
+                              _inventarios.forEach((key, lista) {
+                                if (lista.any((prod) => prod.nombre == p.nombre && prod.categoria == p.categoria)) {
+                                  apartado = key;
+                                }
+                              });
+                            }
                             return Card(
                               child: ListTile(
                                 title: Text(p.nombre),
-                                subtitle: Text('Categoría: \\${p.categoria}\nPrecio: \\${p.precio ?? ''}\nStock: \\${p.stock}\nInfo: \\${p.infoRelevante ?? ''}\nApartado: \\${apartado}'),
+                                subtitle: Text(
+                                  'Categoría: \\${p.categoria}\nPrecio: \\${p.precio ?? ''}\nStock: \\${p.stock}\nInfo: \\${p.infoRelevante ?? ''}\nApartado: \\${apartado.isNotEmpty ? apartado : 'Desconocido'}',
+                                ),
+                                trailing: apartado.isNotEmpty
+                                    ? Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.deepPurple.withOpacity(0.12),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          apartado,
+                                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                                        ),
+                                      )
+                                    : null,
                                 onTap: () {
                                   Navigator.push(
                                     context,

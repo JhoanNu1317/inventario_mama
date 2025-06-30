@@ -121,6 +121,61 @@ class _EditarProductoScreenState extends State<EditarProductoScreen> {
                     : const Text('Guardar cambios'),
               ),
             ),
+            const SizedBox(height: 16),
+            Divider(),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.delete, color: Colors.white),
+                label: const Text('Eliminar producto'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onPressed: _guardando ? null : () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('¿Eliminar producto?'),
+                      content: const Text('Esta acción no se puede deshacer. ¿Seguro que deseas eliminar este producto?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancelar'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirm == true) {
+                    setState(() { _guardando = true; });
+                    try {
+                      final query = await FirebaseFirestore.instance
+                          .collection(widget.coleccion)
+                          .where('nombre', isEqualTo: widget.producto.nombre)
+                          .where('categoria', isEqualTo: widget.producto.categoria)
+                          .get();
+                      for (var doc in query.docs) {
+                        await doc.reference.delete();
+                      }
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Producto eliminado'), backgroundColor: Colors.red),
+                        );
+                        Navigator.pop(context);
+                      }
+                    } catch (e) {
+                      setState(() { _error = 'Error al eliminar: $e'; });
+                    } finally {
+                      setState(() { _guardando = false; });
+                    }
+                  }
+                },
+              ),
+            ),
           ],
         ),
       ),
