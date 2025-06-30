@@ -22,6 +22,7 @@ class BuscarProductoScreen extends StatefulWidget {
 
 class _BuscarProductoScreenState extends State<BuscarProductoScreen> {
   final TextEditingController _nombreController = TextEditingController();
+  final TextEditingController _categoriaController = TextEditingController();
   String? _categoriaSeleccionada;
   String? _apartadoSeleccionado;
   List<ProductoInventario> _resultados = [];
@@ -90,6 +91,13 @@ class _BuscarProductoScreenState extends State<BuscarProductoScreen> {
   }
 
   @override
+  void dispose() {
+    _nombreController.dispose();
+    _categoriaController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -109,22 +117,30 @@ class _BuscarProductoScreenState extends State<BuscarProductoScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: _categoriaSeleccionada,
-              decoration: const InputDecoration(
-                labelText: 'Categoría (opcional)',
-                border: OutlineInputBorder(),
-              ),
-              items: categorias.map((cat) => DropdownMenuItem(
-                value: cat,
-                child: Text(cat),
-              )).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _categoriaSeleccionada = value;
+            Autocomplete<String>(
+              optionsBuilder: (TextEditingValue textEditingValue) {
+                if (textEditingValue.text == '') {
+                  return const Iterable<String>.empty();
+                }
+                return categorias.where((String option) {
+                  return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
                 });
               },
-              isExpanded: true,
+              fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
+                _categoriaController.text = controller.text;
+                return TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  decoration: const InputDecoration(
+                    labelText: 'Categoría (opcional)',
+                    border: OutlineInputBorder(),
+                  ),
+                  onEditingComplete: onEditingComplete,
+                );
+              },
+              onSelected: (String selection) {
+                _categoriaController.text = selection;
+              },
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
@@ -146,7 +162,12 @@ class _BuscarProductoScreenState extends State<BuscarProductoScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: _buscar,
+              onPressed: () {
+                setState(() {
+                  _categoriaSeleccionada = _categoriaController.text;
+                });
+                _buscar();
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepPurple,
                 padding: const EdgeInsets.symmetric(vertical: 16),
