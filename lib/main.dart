@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import './inventario_screen.dart';
 import './info_producto_screen.dart'; //  <-- 1. IMPORTA TU NUEVA PANTALLA AQUÍ
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const InventoryApp());
 }
 

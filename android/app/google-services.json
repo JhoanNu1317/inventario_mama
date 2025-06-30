@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "747385263899",
+    "project_id": "inventario-mama-363ed",
+    "storage_bucket": "inventario-mama-363ed.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:747385263899:android:bfac620fa35f4e760265be",
+        "android_client_info": {
+          "package_name": "com.example.inventario_mama"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClS5B8U8RBovhUAQvZAxqT87CMBkmH9fM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
