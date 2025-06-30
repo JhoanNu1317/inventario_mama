@@ -22,5 +22,5 @@ tasks.register<Delete>("clean") {
 
 plugins {
     // ...existing plugins...
-    id("com.google.gms.google-services") version "4.4.1" apply false
+    id("com.google.gms.google-services") version "4.3.10" apply false
 }

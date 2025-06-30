@@ -3,12 +3,18 @@ import 'package:audioplayers/audioplayers.dart';
 import './inventario_screen.dart';
 import './info_producto_screen.dart'; //  <-- 1. IMPORTA TU NUEVA PANTALLA AQUÍ
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'firebase_options.dart'; // <-- Asegúrate de tener esto
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const InventoryApp());
 }
+
 
 class InventoryApp extends StatelessWidget {
   const InventoryApp({super.key});
@@ -99,6 +105,25 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _probarFirestore() async {
+    // Escribir un producto de prueba
+    await FirebaseFirestore.instance.collection('productos').doc('prueba').set({
+      'nombre': 'Producto de prueba',
+      'categoria': 'Test',
+      'stock': 10,
+      'precio': 123.45,
+    });
+
+    // Leer el producto de prueba
+    var doc = await FirebaseFirestore.instance.collection('productos').doc('prueba').get();
+    print('Producto leído:');
+    print(doc.data());
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Firestore prueba OK: ' + (doc.data()?['nombre'] ?? 'Sin datos'))),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -135,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
             buildButton(Icons.warning_amber_rounded, 'Alertas de Stock Bajo', () {}),
             buildButton(Icons.add_circle_outline, 'Agregar Producto', () {}),
             buildButton(Icons.search, 'Buscar Producto', () {}),
-            buildButton(Icons.settings, 'Configuración', () {}),
+            buildButton(Icons.settings, 'Configuración', _probarFirestore),
             const Spacer(),
             const Text(
               'Versión 1.0.0',
