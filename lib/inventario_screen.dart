@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import './info_producto_screen.dart';
 import './productos_data.dart';
 import 'producto_inventario.dart';
+import 'restock_dialog.dart';
 
 class InventarioScreen extends StatefulWidget {
   const InventarioScreen({super.key});
@@ -168,18 +169,31 @@ class _InventarioScreenState extends State<InventarioScreen> {
                           Expanded(
                             child: Text('Categoría: ${producto.categoria}', style: const TextStyle(fontSize: 15, color: Colors.black54)),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: producto.stock > 0 ? Colors.green[100] : Colors.red[100],
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              'Stock: ${producto.stock}',
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: producto.stock > 0 ? Colors.green[800] : Colors.red[800],
-                                fontWeight: FontWeight.bold,
+                          GestureDetector(
+                            onTap: () async {
+                              final restock = await showRestockDialog(context);
+                              if (restock != null && restock > 0) {
+                                setState(() {
+                                  producto.stock += restock;
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Se agregaron $restock unidades al stock.')),
+                                );
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: producto.stock > 0 ? Colors.green[100] : Colors.red[100],
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Stock: ${producto.stock}',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: producto.stock > 0 ? Colors.green[800] : Colors.red[800],
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
