@@ -387,6 +387,29 @@ class _InventarioScreenState extends State<InventarioScreen> {
                       : 'Precio: Sin precio',
                     style: const TextStyle(fontSize: 15, color: Colors.deepPurple),
                   ),
+                  if ((producto.infoRelevante != null && producto.infoRelevante.trim().isNotEmpty))
+                    Container(
+                      margin: const EdgeInsets.only(top: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.deepPurple.withOpacity(0.07),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.deepPurple.withOpacity(0.2)),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.info_outline, color: Colors.deepPurple, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              producto.infoRelevante,
+                              style: const TextStyle(fontSize: 14, color: Colors.black87),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
             ),
