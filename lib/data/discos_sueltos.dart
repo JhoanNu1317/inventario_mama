@@ -1,7 +1,8 @@
 import '../producto_inventario.dart';
 
 final List<ProductoInventario> productosDiscosSueltos = [
-  ProductoInventario(nombre: 'DISCOS', categoria: 'A750', stock: 35, precio: '₡4.000,00', infoRelevante: 'LOW REVERSA 8 FRENO'),
+  ProductoInventario(noductoInventario(nombre: 'DISCOS', categoria: 'U240', stock: 18, precio: '₡4.000,00', infoRelevante: 'Underdrive Brake(#1 3'),
+  Prombre: 'DISCOS', categoria: 'A750', stock: 35, precio: '₡4.000,00', infoRelevante: 'LOW REVERSA 8 FRENO'),
   ProductoInventario(nombre: 'DISCOS', categoria: 'A750', stock: 20, precio: '₡4.000,00', infoRelevante: 'FORWARD AVANCE 7'),
   ProductoInventario(nombre: 'DISCOS', categoria: 'A750', stock: 20, precio: '₡4.000,00', infoRelevante: 'DIRECTA 6'),
   ProductoInventario(nombre: 'DISOS', categoria: 'A750', stock: 24, precio: '₡4.000,00', infoRelevante: 'REVERSA C3 5'),
@@ -38,7 +39,6 @@ final List<ProductoInventario> productosDiscosSueltos = [
   ProductoInventario(nombre: 'DISCOS', categoria: 'U140', stock: 15, precio: '₡4.000,00', infoRelevante: '1st/Reverse'),
   ProductoInventario(nombre: 'DISCOS', categoria: 'U140', stock: 25, precio: '₡4.000,00'),
   ProductoInventario(nombre: 'DISCOS', categoria: 'U240', stock: 18, precio: '₡4.000,00', infoRelevante: 'Underdrive Brake(#2) 3'),
-  ProductoInventario(nombre: 'DISCOS', categoria: 'U240', stock: 18, precio: '₡4.000,00', infoRelevante: 'Underdrive Brake(#1 3'),
   ProductoInventario(nombre: 'DISCOS', categoria: 'U340', stock: 20, precio: '₡4.000,00', infoRelevante: 'Low reversa 4'),
   ProductoInventario(nombre: 'DISCOS', categoria: 'A340', stock: 35, precio: '₡3.800,00', infoRelevante: 'FORWARD 85 UP 4 O 5 126MM/2,1 MM'),
   ProductoInventario(nombre: 'DISCOS', categoria: 'A340', stock: 15, precio: '₡3.800,00', infoRelevante: 'FORWARD 93 UP 126MM/1,7MM'),

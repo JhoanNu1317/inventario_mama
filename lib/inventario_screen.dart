@@ -16,23 +16,64 @@ class _InventarioScreenState extends State<InventarioScreen> {
   String _selectedCategory = categoriasInventario.first;
   bool _cargandoFirestore = true;
 
+  // Mapeo de nombre de categoría a nombre de colección en Firestore
+  final Map<String, String> _categoriaToColeccion = {
+    'Overhall': 'overhall',
+    'Discos de fricción': 'discos_friccion',
+    'Bandas': 'bandas',
+    'Filtros': 'filtros',
+    'Pistones': 'pistones',
+    'Retenedores': 'retenedores',
+    'Bushing': 'bushing',
+    'Empaques': 'empaques',
+    'Discos sueltos': 'discos_sueltos',
+    'Metales': 'metales',
+    'Varios': 'varios',
+  };
+
   @override
   void initState() {
     super.initState();
-    _poblarColeccionOverhall();
+    // Llama a la nueva función para sincronizar sin borrar stock
+    sincronizarColeccionSinBorrar('overhall', productosOverhall);
+    sincronizarColeccionSinBorrar('discos_friccion', productosDiscosFriccion);
+    sincronizarColeccionSinBorrar('bandas', productosBandas);
+    sincronizarColeccionSinBorrar('varios', productosVarios);
+    sincronizarColeccionSinBorrar('discos_sueltos', productosDiscosSueltos);
+    sincronizarColeccionSinBorrar('pistones', productosPistones);
+    sincronizarColeccionSinBorrar('filtros', productosFiltros);
+    sincronizarColeccionSinBorrar('retenedores', productosRetenedores);
+    sincronizarColeccionSinBorrar('metales', productosMetales);
+    sincronizarColeccionSinBorrar('empaques', productosEmpaques);
+    sincronizarColeccionSinBorrar('bushing', productosBushing);
   }
 
-  Future<void> _poblarColeccionOverhall() async {
-    for (var producto in productosOverhall) {
-      final query = await FirebaseFirestore.instance
-          .collection('overhall')
-          .where('nombre', isEqualTo: producto.nombre)
-          .get();
-      if (query.docs.isEmpty) {
-        await FirebaseFirestore.instance.collection('overhall').add({
+  Future<void> sincronizarColeccionSinBorrar(String coleccion, List<ProductoInventario> productos) async {
+    final collectionRef = FirebaseFirestore.instance.collection(coleccion);
+    final snapshot = await collectionRef.get();
+    final docs = snapshot.docs;
+    for (var producto in productos) {
+      QueryDocumentSnapshot<Map<String, dynamic>>? existe;
+      for (var doc in docs) {
+        if (doc['nombre'] == producto.nombre && doc['categoria'] == producto.categoria) {
+          existe = doc;
+          break;
+        }
+      }
+      if (existe == null) {
+        // Si no existe, lo agregamos con el stock local
+        await collectionRef.add({
           'nombre': producto.nombre,
           'categoria': producto.categoria,
           'stock': producto.stock,
+          'precio': producto.precio,
+          'infoRelevante': producto.infoRelevante,
+        });
+      } else {
+        // Si existe, actualizamos solo los campos que no son stock
+        await existe.reference.update({
+          'nombre': producto.nombre,
+          'categoria': producto.categoria,
           'precio': producto.precio,
           'infoRelevante': producto.infoRelevante,
         });
@@ -40,9 +81,9 @@ class _InventarioScreenState extends State<InventarioScreen> {
     }
   }
 
-  Stream<List<ProductoInventario>> streamProductosOverhall() {
+  Stream<List<ProductoInventario>> streamProductosCategoria(String coleccion) {
     return FirebaseFirestore.instance
-        .collection('overhall')
+        .collection(coleccion)
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) {
               final data = doc.data();
@@ -56,7 +97,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
             }).toList());
   }
 
-  Future<void> actualizarStockFirestore(String nombre, String categoria, int nuevoStock, {String coleccion = 'overhall'}) async {
+  Future<void> actualizarStockFirestore(String nombre, String categoria, int nuevoStock, {required String coleccion}) async {
     final query = await FirebaseFirestore.instance
         .collection(coleccion)
         .where('nombre', isEqualTo: nombre)
@@ -69,16 +110,44 @@ class _InventarioScreenState extends State<InventarioScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final coleccionActual = _categoriaToColeccion[_selectedCategory]!;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.deepPurple,
-        title: const Text('Inventario Overhall'),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              _selectedCategory,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+            ),
+            const SizedBox(width: 8),
+            DropdownButton<String>(
+              value: _selectedCategory,
+              dropdownColor: Colors.deepPurple[50],
+              icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+              underline: Container(),
+              style: const TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold, fontSize: 18),
+              items: categoriasInventario.map((cat) => DropdownMenuItem(
+                value: cat,
+                child: Text(cat, style: const TextStyle(color: Colors.deepPurple)),
+              )).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _selectedCategory = value;
+                  });
+                }
+              },
+            ),
+          ],
+        ),
         centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         child: StreamBuilder<List<ProductoInventario>>(
-          stream: streamProductosOverhall(),
+          stream: streamProductosCategoria(coleccionActual),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -88,16 +157,16 @@ class _InventarioScreenState extends State<InventarioScreen> {
             }
             final productos = snapshot.data ?? [];
             if (productos.isEmpty) {
-              return const Center(child: Text('No hay productos en Overhall.'));
+              return Center(child: Text('No hay productos en \\${_selectedCategory}.'));
             }
-            return _buildProductosList(productos);
+            return _buildProductosList(productos, coleccionActual);
           },
         ),
       ),
     );
   }
 
-  Widget _buildProductosList(List<ProductoInventario> productos) {
+  Widget _buildProductosList(List<ProductoInventario> productos, String coleccion) {
     return ListView.builder(
       itemCount: productos.length,
       itemBuilder: (context, index) {
@@ -143,7 +212,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
                         onTap: () async {
                           if (producto.stock > 0) {
                             final nuevoStock = producto.stock - 1;
-                            await actualizarStockFirestore(producto.nombre, producto.categoria, nuevoStock, coleccion: 'overhall');
+                            await actualizarStockFirestore(producto.nombre, producto.categoria, nuevoStock, coleccion: coleccion);
                           }
                           Navigator.pop(context);
                         },
@@ -182,7 +251,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
                           final restock = await showRestockDialog(context);
                           if (restock != null && restock > 0) {
                             final nuevoStock = producto.stock + restock;
-                            await actualizarStockFirestore(producto.nombre, producto.categoria, nuevoStock, coleccion: 'overhall');
+                            await actualizarStockFirestore(producto.nombre, producto.categoria, nuevoStock, coleccion: coleccion);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('Se agregaron \\${restock} unidades al stock.')),
                             );
