@@ -47,6 +47,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
   String? _highlightCategoria;
   int? _pendingScrollToIndex;
   bool _hasScrolled = false;
+  int? _selectedIndex; // Para saber qué producto está expandido
 
   @override
   void initState() {
@@ -150,9 +151,13 @@ class _InventarioScreenState extends State<InventarioScreen> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              _selectedCategory,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+            Flexible(
+              child: Text(
+                _selectedCategory,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
             ),
             const SizedBox(width: 8),
             DropdownButton<String>(
@@ -232,55 +237,158 @@ class _InventarioScreenState extends State<InventarioScreen> {
         return Card(
           color: isHighlighted ? Colors.yellow[200] : null,
           margin: const EdgeInsets.symmetric(vertical: 8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(producto.nombre, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text('Categoría: \\${producto.categoria}', style: const TextStyle(fontSize: 15, color: Colors.black54)),
-                    ),
-                    GestureDetector(
-                      onTap: () async {
-                        final restock = await showRestockDialog(context);
-                        if (restock != null && restock > 0) {
-                          final nuevoStock = producto.stock + restock;
-                          await actualizarStockFirestore(producto.nombre, producto.categoria, nuevoStock, coleccion: coleccion);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Se agregaron \\${restock} unidades al stock.')),
-                          );
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: producto.stock > 0 ? Colors.green[100] : Colors.red[100],
-                          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    title: Text(producto.nombre, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Categoría: \\${producto.categoria}', style: const TextStyle(fontSize: 15, color: Colors.black54)),
+                        const SizedBox(height: 4),
+                        Text((producto.precio != null && producto.precio.trim().isNotEmpty)
+                          ? 'Precio: \\${producto.precio}'
+                          : 'Precio: Sin precio',
+                          style: const TextStyle(fontSize: 15, color: Colors.deepPurple)),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: producto.stock > 0 ? Colors.green[100] : Colors.red[100],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'Stock: \\${producto.stock}',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: producto.stock > 0 ? Colors.green[800] : Colors.red[800],
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                        child: Text(
-                          'Stock: \\${producto.stock}',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: producto.stock > 0 ? Colors.green[800] : Colors.red[800],
-                            fontWeight: FontWeight.bold,
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.info_outline, color: Colors.deepPurple),
+                              tooltip: 'Ver info',
+                              onPressed: () {
+                                Navigator.pop(context);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => InfoProductoScreen(
+                                      nombre: producto.nombre,
+                                      categoria: producto.categoria,
+                                      stock: producto.stock,
+                                      precio: producto.precio,
+                                      infoRelevante: producto.infoRelevante,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.remove_shopping_cart, color: Colors.orange),
+                              tooltip: 'Se vendió',
+                              onPressed: () async {
+                                Navigator.pop(context);
+                                if (producto.stock > 0) {
+                                  await actualizarStockFirestore(producto.nombre, producto.categoria, producto.stock - 1, coleccion: coleccion);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('¡Producto vendido!')),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('No hay stock disponible.')),
+                                  );
+                                }
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.blueGrey),
+                              tooltip: 'Editar',
+                              onPressed: () {
+                                Navigator.pop(context);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => EditarProductoScreen(producto: producto, coleccion: coleccion),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cerrar'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(producto.nombre, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('Categoría: \\${producto.categoria}', style: const TextStyle(fontSize: 15, color: Colors.black54)),
+                      ),
+                      GestureDetector(
+                        onTap: () async {
+                          final restock = await showRestockDialog(context);
+                          if (restock != null && restock > 0) {
+                            final nuevoStock = producto.stock + restock;
+                            await actualizarStockFirestore(producto.nombre, producto.categoria, nuevoStock, coleccion: coleccion);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Se agregaron \\${restock} unidades al stock.')),
+                            );
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: producto.stock > 0 ? Colors.green[100] : Colors.red[100],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'Stock: \\${producto.stock}',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: producto.stock > 0 ? Colors.green[800] : Colors.red[800],
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  (producto.precio != null && producto.precio.trim().isNotEmpty)
-                    ? 'Precio: \\${producto.precio}'
-                    : 'Precio: Sin precio',
-                  style: const TextStyle(fontSize: 15, color: Colors.deepPurple),
-                ),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    (producto.precio != null && producto.precio.trim().isNotEmpty)
+                      ? 'Precio: \\${producto.precio}'
+                      : 'Precio: Sin precio',
+                    style: const TextStyle(fontSize: 15, color: Colors.deepPurple),
+                  ),
+                ],
+              ),
             ),
           ),
         );
