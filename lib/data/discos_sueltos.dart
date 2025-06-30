@@ -1,11 +1,11 @@
 import '../producto_inventario.dart';
 
 final List<ProductoInventario> productosDiscosSueltos = [
-  ProductoInventario(noductoInventario(nombre: 'DISCOS', categoria: 'U240', stock: 18, precio: '₡4.000,00', infoRelevante: 'Underdrive Brake(#1 3'),
-  Prombre: 'DISCOS', categoria: 'A750', stock: 35, precio: '₡4.000,00', infoRelevante: 'LOW REVERSA 8 FRENO'),
+  ProductoInventario(nombre: 'DISCOS', categoria: 'U240', stock: 18, precio: '₡4.000,00', infoRelevante: 'Underdrive Brake(#1 3'),
+  ProductoInventario(nombre: 'DISCOS', categoria: 'A750', stock: 35, precio: '₡4.000,00', infoRelevante: 'LOW REVERSA 8 FRENO'),
   ProductoInventario(nombre: 'DISCOS', categoria: 'A750', stock: 20, precio: '₡4.000,00', infoRelevante: 'FORWARD AVANCE 7'),
   ProductoInventario(nombre: 'DISCOS', categoria: 'A750', stock: 20, precio: '₡4.000,00', infoRelevante: 'DIRECTA 6'),
-  ProductoInventario(nombre: 'DISOS', categoria: 'A750', stock: 24, precio: '₡4.000,00', infoRelevante: 'REVERSA C3 5'),
+  ProductoInventario(nombre: 'DISCOS', categoria: 'A750', stock: 24, precio: '₡4.000,00', infoRelevante: 'REVERSA C3 5'),
   ProductoInventario(nombre: 'DISCOS', categoria: 'A750', stock: 0, precio: '₡4.000,00', infoRelevante: '2 BRAKE CLUTCH B3 4'),
   ProductoInventario(nombre: 'DISCOS', categoria: 'A750', stock: 20, precio: '₡4.000,00', infoRelevante: '1 BRAKE 4'),
   ProductoInventario(nombre: 'DISCOS', categoria: 'A750', stock: 0, precio: '₡4.000,00', infoRelevante: 'OVER DRIVE DRUM 4'),

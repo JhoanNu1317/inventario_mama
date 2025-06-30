@@ -4,6 +4,7 @@ import './productos_data.dart';
 import 'producto_inventario.dart';
 import 'restock_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'editar_producto_screen.dart';
 
 class InventarioScreen extends StatefulWidget {
   const InventarioScreen({super.key});
@@ -34,18 +35,18 @@ class _InventarioScreenState extends State<InventarioScreen> {
   @override
   void initState() {
     super.initState();
-    // Llama a la nueva función para sincronizar sin borrar stock
-    sincronizarColeccionSinBorrar('overhall', productosOverhall);
-    sincronizarColeccionSinBorrar('discos_friccion', productosDiscosFriccion);
-    sincronizarColeccionSinBorrar('bandas', productosBandas);
-    sincronizarColeccionSinBorrar('varios', productosVarios);
-    sincronizarColeccionSinBorrar('discos_sueltos', productosDiscosSueltos);
-    sincronizarColeccionSinBorrar('pistones', productosPistones);
-    sincronizarColeccionSinBorrar('filtros', productosFiltros);
-    sincronizarColeccionSinBorrar('retenedores', productosRetenedores);
-    sincronizarColeccionSinBorrar('metales', productosMetales);
-    sincronizarColeccionSinBorrar('empaques', productosEmpaques);
-    sincronizarColeccionSinBorrar('bushing', productosBushing);
+    // Sincronización automática desactivada (eliminar llamadas de prueba)
+    // sincronizarColeccionSinBorrar('overhall', productosOverhall);
+    // sincronizarColeccionSinBorrar('discos_friccion', productosDiscosFriccion);
+    // sincronizarColeccionSinBorrar('bandas', productosBandas);
+    // sincronizarColeccionSinBorrar('varios', productosVarios);
+    // sincronizarColeccionSinBorrar('discos_sueltos', productosDiscosSueltos);
+    // sincronizarColeccionSinBorrar('pistones', productosPistones);
+    // sincronizarColeccionSinBorrar('filtros', productosFiltros);
+    // sincronizarColeccionSinBorrar('retenedores', productosRetenedores);
+    // sincronizarColeccionSinBorrar('metales', productosMetales);
+    // sincronizarColeccionSinBorrar('empaques', productosEmpaques);
+    // sincronizarColeccionSinBorrar('bushing', productosBushing);
   }
 
   Future<void> sincronizarColeccionSinBorrar(String coleccion, List<ProductoInventario> productos) async {
@@ -223,7 +224,15 @@ class _InventarioScreenState extends State<InventarioScreen> {
                         title: const Text('Editar', style: TextStyle(fontWeight: FontWeight.bold)),
                         onTap: () {
                           Navigator.pop(context);
-                          // Acción futura
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EditarProductoScreen(
+                                producto: producto,
+                                coleccion: coleccion,
+                              ),
+                            ),
+                          );
                         },
                       ),
                     ],
